@@ -9,8 +9,10 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import com.example.android.habittracker.data.HabitsTrackerContract.HabitsEntry;
+import android.util.Log;
 
+import com.example.android.habittracker.data.HabitsTrackerContract.HabitsEntry;
+import com.example.android.habittracker.R;
 
 public class HabitsTrackerProvider extends ContentProvider {
 
@@ -130,7 +132,56 @@ public class HabitsTrackerProvider extends ContentProvider {
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        return null;
+
+        final int match = sUriMatcher.match(uri);
+        switch (match) {
+
+            // URI matches with the habits list's URI
+            case HABITS:
+                // Insert the habit into the database
+
+                if (values.size() == 0) {
+                    return null;
+                }
+
+                // Validate the description
+                if (values.containsKey(HabitsEntry.COLUMN_HABIT_DESCRIPTION)) {
+                    String description = values.getAsString(HabitsEntry.COLUMN_HABIT_DESCRIPTION);
+                    if (description == null) {
+                        throw new IllegalArgumentException(
+                            getContext().getString(R.string.invalid_habit_description_exception));
+                    }
+                }
+
+                // Validate the total times done
+                if (values.containsKey(HabitsEntry.COLUMN_HABIT_TOTAL_TIMES_DONE)) {
+                    Integer total = values.getAsInteger(HabitsEntry.COLUMN_HABIT_TOTAL_TIMES_DONE);
+                    if (total != null && total < 0) {
+                        throw new IllegalArgumentException(
+                            getContext().getString(R.string.invalid_habit_total_exception));
+                    }
+                }
+
+                // Gets the data repository in write mode
+                SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+                // Insert the new row, returning the primary key value of the new row
+                long id = db.insert(HabitsEntry.TABLE_NAME, null, values);
+
+                if (id == -1) {
+                    return null;
+                }
+
+                // Notify all listeners that the data has changed for the habit content URI
+                getContext().getContentResolver().notifyChange(uri, null);
+
+                // Once we know the ID of the new row in the table,
+                // return the new URI with the ID appended to the end of it
+                return ContentUris.withAppendedId(uri, id);
+
+            default:
+                throw new IllegalArgumentException("Insertion is not supported for " + uri);
+        }
     }
 
     @Override
