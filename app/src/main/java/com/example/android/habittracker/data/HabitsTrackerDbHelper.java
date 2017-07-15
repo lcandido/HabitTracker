@@ -5,10 +5,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import com.example.android.habittracker.data.HabitsTrackerContract.HabitsEntry;
 
-/**
- * Created by lcandido on 11/07/17.
- */
-
 public class HabitsTrackerDbHelper extends SQLiteOpenHelper {
 
     // Name of the database file
@@ -18,7 +14,7 @@ public class HabitsTrackerDbHelper extends SQLiteOpenHelper {
     private static final int DATABASE_VERSION = 1;
 
     // Habits tracker database helper constructor
-    HabitsTrackerDbHelper(Context context) {
+    public HabitsTrackerDbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
